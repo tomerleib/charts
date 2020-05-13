@@ -85,6 +85,19 @@ spec:
       tolerations:
 {{ toYaml .Values.alpha.tolerations | indent 8 }}
       {{- end }}
+      initContainers:
+        - name: init-alpha
+          image: "{{ template "dgraph.image" . }}"
+          command:
+            - bash
+            - "-c"
+            - |
+              trap "exit" SIGINT SIGTERM
+              echo "Write to /dgraph/doneinit when ready."
+              until [ -f /dgraph/doneinit ]; do sleep 2; done
+          volumeMounts:
+            - name: datadir
+              mountPath: /dgraph
       containers:
       - name: {{ template "dgraph.alpha.fullname" . }}
         image: {{ template "dgraph.image" . }}
